@@ -23,7 +23,7 @@ public class AuthService {
     public void register(RegisterRequest request) {
         repository.findByEmail(request.email())
                 .ifPresent(u -> {
-                    throw new RuntimeException("Email already exists");
+                    throw new EmailAlreadyExistsException("Email already exists");
                 });
 
         UserCredential user = UserCredential.builder()
@@ -38,10 +38,10 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         UserCredential user = repository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new InvalidCredentialsException("Invalid credentials");
         }
 
         String token = jwtUtil.generateToken(user.getId(), user.getRole());
