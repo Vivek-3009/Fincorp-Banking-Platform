@@ -7,6 +7,8 @@ import com.vivek.fincorp.authentication_service.dto.AuthResponse;
 import com.vivek.fincorp.authentication_service.dto.LoginRequest;
 import com.vivek.fincorp.authentication_service.dto.RegisterRequest;
 import com.vivek.fincorp.authentication_service.entity.UserCredential;
+import com.vivek.fincorp.authentication_service.exception.EmailAlreadyExistsException;
+import com.vivek.fincorp.authentication_service.exception.InvalidCredentialsException;
 import com.vivek.fincorp.authentication_service.repository.UserCredentialRepository;
 import com.vivek.fincorp.authentication_service.security.JwtUtil;
 

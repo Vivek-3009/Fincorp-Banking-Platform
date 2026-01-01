@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
+import com.vivek.fincorp.authentication_service.dto.ErrorResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
