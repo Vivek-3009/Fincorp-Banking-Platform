@@ -5,5 +5,5 @@ import com.vivek.fincorp.account_service.enums.AccountType;
 import jakarta.validation.constraints.NotNull;
 
 public record CreateAccountRequest(
-    @NotNull AccountType type
+    @NotNull AccountType accountType
 ) {}

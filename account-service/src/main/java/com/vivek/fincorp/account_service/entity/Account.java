@@ -7,6 +7,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import com.vivek.fincorp.account_service.enums.AccountStatus;
+import com.vivek.fincorp.account_service.enums.AccountType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -49,13 +50,18 @@ public class Account {
     private BigDecimal balance;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountType accountType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private AccountStatus status;
 
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
     private LocalDateTime updatedAt;
 
-    
     @PrePersist
     void onCreate() {
         createdAt = LocalDateTime.now();
