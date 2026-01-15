@@ -10,14 +10,10 @@ import com.vivek.fincorp.account_service.dto.AccountResponse;
 import com.vivek.fincorp.account_service.dto.CreateAccountRequest;
 import com.vivek.fincorp.account_service.entity.Account;
 import com.vivek.fincorp.account_service.enums.AccountStatus;
+import com.vivek.fincorp.account_service.exception.AccountAccessDeniedException;
+import com.vivek.fincorp.account_service.exception.AccountNotFoundException;
+import com.vivek.fincorp.account_service.exception.InvalidAccountStateException;
 import com.vivek.fincorp.account_service.mapper.AccountMapper;
-import com.vivek.fincorp.account_service.repository.AccountRepository;
-import com.vivek.fincorp.account_service.service.AccountService;
-import com.vivek.fincorp.account_service.utils.AccountNumberGenerator;
-
-import lombok.RequiredArgsConstructor;
-
-import com.vivek.fincorp.account_service.enums.AccountStatus;
 import com.vivek.fincorp.account_service.repository.AccountRepository;
 import com.vivek.fincorp.account_service.service.AccountService;
 import com.vivek.fincorp.account_service.utils.AccountNumberGenerator;
@@ -26,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class AccountServiceImpl implements AccountService{
+public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
     private final AccountNumberGenerator accountNumberGenerator;
@@ -41,7 +37,7 @@ public class AccountServiceImpl implements AccountService{
                 .accountType(request.accountType())
                 .balance(BigDecimal.ZERO)
                 .status(AccountStatus.ACTIVE)
-                .build(); 
+                .build();
 
         Account savedAccount = accountRepository.save(account);
 
@@ -57,5 +53,23 @@ public class AccountServiceImpl implements AccountService{
                 .map(AccountMapper::toResponse)
                 .toList();
     }
-    
+
+    @Override
+    @Transactional(readOnly = true)
+    public AccountResponse getAccountByNumber(String userId, String accountNumber) {
+
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        if (!account.getUserId().equals(userId)) {
+            throw new AccountAccessDeniedException("You cannot access this account");
+        }
+
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new InvalidAccountStateException(
+                    "Account is not active: " + account.getStatus());
+        }
+
+        return AccountMapper.toResponse(account);
+    }
 }
