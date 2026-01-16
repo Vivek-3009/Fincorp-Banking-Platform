@@ -32,8 +32,8 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String fromAccountId;
-    private String toAccountId;
+    private String fromAccountNumber;
+    private String toAccountNumber;
 
     private BigDecimal amount;
 
