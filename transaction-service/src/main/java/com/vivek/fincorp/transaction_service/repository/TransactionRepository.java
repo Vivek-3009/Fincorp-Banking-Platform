@@ -10,5 +10,5 @@ import com.vivek.fincorp.transaction_service.entity.Transaction;
 public interface TransactionRepository extends JpaRepository<Transaction, String> {
 
     Optional<Transaction> findByIdempotencyKey(String idempotencyKey);
-    List<Transaction> findByFromAccountNumberOrToAccountNumber(String fromAccount, String toAccount);
+    Page<Transaction> findByFromAccountNumberOrToAccountNumber(String fromAccount, String toAccount);
 }

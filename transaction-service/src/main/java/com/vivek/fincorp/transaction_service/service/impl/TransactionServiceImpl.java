@@ -15,7 +15,7 @@ public class TransactionServiceImpl implements TransactionService{
     }
 
     @Override
-    public List<TransactionResponse> getTransactionsByAccount(String userId, String accountNumber) {
+    public Page<TransactionResponse> getTransactionsByAccount(String userId, String accountNumber,) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getTransactionsByAccount'");
     }
