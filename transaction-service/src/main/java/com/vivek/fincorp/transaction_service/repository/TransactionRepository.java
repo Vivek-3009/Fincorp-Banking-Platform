@@ -3,6 +3,7 @@ package com.vivek.fincorp.transaction_service.repository;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.vivek.fincorp.transaction_service.entity.Transaction;
@@ -10,5 +11,5 @@ import com.vivek.fincorp.transaction_service.entity.Transaction;
 public interface TransactionRepository extends JpaRepository<Transaction, String> {
 
     Optional<Transaction> findByIdempotencyKey(String idempotencyKey);
-    Page<Transaction> findByFromAccountNumberOrToAccountNumber(String fromAccount, String toAccount);
+    Page<Transaction> findByFromAccountNumberOrToAccountNumber(String fromAccount, String toAccount, Pageable pageable);
 }
