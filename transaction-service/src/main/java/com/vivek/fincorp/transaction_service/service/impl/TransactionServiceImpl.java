@@ -26,50 +26,58 @@ public class TransactionServiceImpl implements TransactionService{
 
     private final TransactionRepository transactionRepository;
     private final AccountClient accountClient;
-    private final AccountValidationService accountValidationService;
     
-    public TransactionServiceImpl(TransactionRepository transactionRepository, AccountClient accountClient, AccountValidationService accountValidationService) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository, AccountClient accountClient) {
         this.transactionRepository = transactionRepository;
         this.accountClient = accountClient;
-        this.accountValidationService = accountValidationService;
     }
 
     @Override
     public TransactionResponse transfer(String userId, String idempotencyKey, TransferRequest request) {
+
         transactionRepository.findByIdempotencyKey(idempotencyKey)
                             .ifPresent(tx -> {
                                 throw new DuplicateTransactionException("Duplicate transaction request");
                             });
-        
-        AccountDto fromAccount = accountClient.getAccount(request.fromAccountNumber());
-        AccountDto toAccount = accountClient.getAccount(request.toAccountNumber());
-
-        accountValidationService.validateAccount(fromAccount, "Source");
-        accountValidationService.validateAccount(toAccount, "Destination");
-
-        if (fromAccount.balance().compareTo(request.amount()) < 0) {
-            throw new InsufficientBalanceException("Insufficient balance");
-        }
-
-        accountClient.debit(request.fromAccountNumber(), request.amount());
-        accountClient.credit(request.toAccountNumber(), request.amount());
 
         Transaction transaction = Transaction.builder()
                 .fromAccountNumber(request.fromAccountNumber())
                 .toAccountNumber(request.toAccountNumber())
                 .amount(request.amount())
-                .status(TransactionStatus.SUCCESS)
+                .status(TransactionStatus.PENDING)
                 .idempotencyKey(idempotencyKey)
                 .build();
 
-        return TransactionMapper.toResponse(transactionRepository.save(transaction));
+        transactionRepository.save(transaction);
 
+        try {
+            AccountDto from = accountClient.getAccount(request.fromAccountNumber());
+            AccountDto to = accountClient.getAccount(request.toAccountNumber());
+
+            AccountValidationService.validateAccount(from, "Source");
+            AccountValidationService.validateAccount(to, "Destination");
+
+            if (from.balance().compareTo(request.amount()) < 0) {
+                throw new InsufficientBalanceException("Insufficient balance");
+            }
+
+            accountClient.debit(request.fromAccountNumber(), request.amount());
+            accountClient.credit(request.toAccountNumber(), request.amount());
+
+            transaction.setStatus(TransactionStatus.SUCCESS);
+
+        } catch (RuntimeException ex) {
+            transaction.setStatus(TransactionStatus.FAILED);
+            throw ex;
+        }
+
+        return TransactionMapper.toResponse(transaction);
     }
 
     @Override
     public Page<TransactionResponse> getTransactionsByAccount(String userId, String accountNumber, Pageable pageable) {
         AccountDto account = accountClient.getAccount(accountNumber);
-        accountValidationService.validateAccount(account, "Account");
+        AccountValidationService.validateAccount(account, "Account");
 
         Page<Transaction> transactions = transactionRepository.findByFromAccountNumberOrToAccountNumber(accountNumber, accountNumber, pageable);
 
