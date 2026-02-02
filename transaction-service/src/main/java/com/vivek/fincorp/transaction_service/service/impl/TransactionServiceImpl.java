@@ -19,18 +19,15 @@ import com.vivek.fincorp.transaction_service.service.TransactionService;
 import com.vivek.fincorp.transaction_service.validation.AccountValidationService;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService{
 
     private final TransactionRepository transactionRepository;
     private final AccountClient accountClient;
-    
-    public TransactionServiceImpl(TransactionRepository transactionRepository, AccountClient accountClient) {
-        this.transactionRepository = transactionRepository;
-        this.accountClient = accountClient;
-    }
 
     @Override
     public TransactionResponse transfer(String userId, String idempotencyKey, TransferRequest request) {
