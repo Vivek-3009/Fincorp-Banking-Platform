@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class TransactionServiceImpl implements TransactionService{
 
     private final TransactionRepository transactionRepository;
-    private final AccountClient accountClient;
+    private final AccountClient accountClient; 
 
     @Override
     public TransactionResponse transfer(String userId, String idempotencyKey, TransferRequest request) {
