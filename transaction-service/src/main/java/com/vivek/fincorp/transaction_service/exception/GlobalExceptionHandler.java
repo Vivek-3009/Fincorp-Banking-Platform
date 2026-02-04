@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateTransactionException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateTransaction(
-            DuplicateTransactionException ex) {
-
+    public ResponseEntity<ErrorResponse> handleDuplicateTransaction(DuplicateTransactionException ex) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse(
@@ -22,9 +20,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InsufficientBalanceException.class)
-    public ResponseEntity<ErrorResponse> handleInsufficientBalance(
-            InsufficientBalanceException ex) {
-
+    public ResponseEntity<ErrorResponse> handleInsufficientBalance(InsufficientBalanceException ex) {
         return ResponseEntity
                 .badRequest()
                 .body(new ErrorResponse(
@@ -34,9 +30,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidAccountException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidAccount(
-            InvalidAccountException ex) {
-
+    public ResponseEntity<ErrorResponse> handleInvalidAccount(InvalidAccountException ex) {
         return ResponseEntity
                 .badRequest()
                 .body(new ErrorResponse(
@@ -46,9 +40,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationErrors(
-            MethodArgumentNotValidException ex) {
-
+    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -64,9 +56,18 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(TransactionNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTransactionNotFound(TransactionNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(
+                        HttpStatus.NOT_FOUND.value(),
+                        ex.getMessage()
+                ));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse(
@@ -74,4 +75,6 @@ public class GlobalExceptionHandler {
                         "Internal server error"
                 ));
     }
+
+
 }
