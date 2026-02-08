@@ -4,28 +4,19 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.vivek.fincorp.transaction_service.enums.TransactionStatus;
+import com.vivek.fincorp.transaction_service.enums.TransactionType;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(
     name = "transactions",
-    uniqueConstraints = @UniqueConstraint(columnNames = "idempotencyKey")
+    indexes = {
+        @Index(name = "idx_tx_idempotency", columnList = "idempotencyKey", unique = true),
+        @Index(name = "idx_tx_from_account", columnList = "fromAccountNumber"),
+        @Index(name = "idx_tx_to_account", columnList = "toAccountNumber")
+    }
 )
 @Getter
 @Setter
@@ -35,28 +26,36 @@ import lombok.Setter;
 public class Transaction {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36)
     private String id;
 
-    @Column(nullable = false)
+    @Column(length = 20)
     private String fromAccountNumber;
 
-    @Column(nullable = false)
+    @Column(length = 20)
     private String toAccountNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
+    private TransactionType type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private TransactionStatus status;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 64)
     private String idempotencyKey;
 
-    @Column(updatable = false)
+    @Version
+    private Long version;
+
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist
