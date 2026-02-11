@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.vivek.fincorp.account_service.dto.AccountInternalDto;
 import com.vivek.fincorp.account_service.dto.AccountResponse;
 import com.vivek.fincorp.account_service.dto.CreateAccountRequest;
 import com.vivek.fincorp.account_service.entity.Account;
@@ -71,5 +72,18 @@ public class AccountServiceImpl implements AccountService {
         }
 
         return AccountMapper.toResponse(account);
+    }
+
+    @Override
+    public AccountInternalDto getAccountInternal(String accountNumber){
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        return new AccountInternalDto(
+                account.getAccountNumber(),
+                account.getUserId(),
+                account.getBalance(),
+                account.getStatus().toString()
+        );
     }
 }
