@@ -1,5 +1,6 @@
 package com.vivek.fincorp.account_service.exception;
 
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -36,5 +37,26 @@ public class GlobalExceptionHandler {
                                 .body(new ErrorResponse(
                                                 HttpStatus.BAD_REQUEST.value(),
                                                 ex.getMessage()));
+        }
+
+        @ExceptionHandler(InsufficientBalanceException.class)
+        public ResponseEntity<ErrorResponse> handleInsufficientBalance(InsufficientBalanceException ex) {
+
+                return ResponseEntity
+                                .badRequest()
+                                .body(new ErrorResponse(
+                                                HttpStatus.BAD_REQUEST.value(),
+                                                ex.getMessage()));
+        }
+
+        @ExceptionHandler(OptimisticLockingFailureException.class)
+        public ResponseEntity<ErrorResponse> handleOptimisticLocking(OptimisticLockingFailureException ex) {
+
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(new ErrorResponse(
+                                        HttpStatus.CONFLICT.value(),
+                                        "Account was updated concurrently. Please retry."
+                                ));
         }
 }
