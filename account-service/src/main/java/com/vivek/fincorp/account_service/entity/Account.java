@@ -9,21 +9,8 @@ import org.hibernate.annotations.SQLRestriction;
 import com.vivek.fincorp.account_service.enums.AccountStatus;
 import com.vivek.fincorp.account_service.enums.AccountType;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "accounts")
@@ -33,7 +20,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @SQLDelete(sql = "UPDATE accounts SET status = 'CLOSED' WHERE id = ?")
-@SQLRestriction("status <> 'DELETED'")
+@SQLRestriction("status <> 'CLOSED'")
 public class Account {
 
     @Id
@@ -41,36 +28,39 @@ public class Account {
     private String id;
 
     @Column(nullable = false)
-    private String userId; // from X-USER-ID
+    private String userId; // owner (from X-USER-ID)
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 20)
     private String accountNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal balance;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private AccountType accountType;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private AccountStatus status;
+
+    @Version
+    private Long version;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
-    
+
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist
     void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = this.createdAt;
     }
 
     @PreUpdate
     void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
-
 }
