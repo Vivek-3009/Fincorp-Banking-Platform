@@ -1,5 +1,6 @@
 package com.vivek.fincorp.transaction_service.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -17,9 +18,11 @@ import com.vivek.fincorp.transaction_service.dto.WithdrawRequest;
 import com.vivek.fincorp.transaction_service.entity.Transaction;
 import com.vivek.fincorp.transaction_service.enums.TransactionStatus;
 import com.vivek.fincorp.transaction_service.enums.TransactionType;
+import com.vivek.fincorp.transaction_service.event.TransactionCompletedEvent;
 import com.vivek.fincorp.transaction_service.exception.DuplicateTransactionException;
 import com.vivek.fincorp.transaction_service.exception.TransactionNotFoundException;
 import com.vivek.fincorp.transaction_service.mapper.TransactionMapper;
+import com.vivek.fincorp.transaction_service.publisher.TransactionEventPublisher;
 import com.vivek.fincorp.transaction_service.repository.TransactionRepository;
 import com.vivek.fincorp.transaction_service.service.TransactionService;
 import com.vivek.fincorp.transaction_service.validation.AccountValidationService;
@@ -32,6 +35,7 @@ public class TransactionServiceImpl implements TransactionService{
 
     private final TransactionRepository transactionRepository;
     private final AccountClient accountClient; 
+    private final TransactionEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -81,6 +85,19 @@ public class TransactionServiceImpl implements TransactionService{
             transaction.setStatus(TransactionStatus.SUCCESS);
             transactionRepository.save(transaction);
 
+            
+            eventPublisher.publish(
+                    new TransactionCompletedEvent(
+                            transaction.getId(),
+                            userId,
+                            transaction.getFromAccountNumber(),
+                            transaction.getToAccountNumber(),
+                            transaction.getAmount(),
+                            transaction.getType(),
+                            transaction.getStatus(),
+                            LocalDateTime.now()
+                    )
+            );
             return TransactionMapper.toResponse(transaction);
 
         } catch (RuntimeException ex) {
@@ -102,6 +119,19 @@ public class TransactionServiceImpl implements TransactionService{
         
             transaction.setStatus(TransactionStatus.FAILED);
             transactionRepository.save(transaction);
+
+            eventPublisher.publish(
+                    new TransactionCompletedEvent(
+                            transaction.getId(),
+                            userId,
+                            transaction.getFromAccountNumber(),
+                            transaction.getToAccountNumber(),
+                            transaction.getAmount(),
+                            transaction.getType(),
+                            transaction.getStatus(),
+                            LocalDateTime.now()
+                    )
+            );
 
             throw ex;
         }
@@ -172,12 +202,38 @@ public class TransactionServiceImpl implements TransactionService{
             transaction.setStatus(TransactionStatus.SUCCESS);
             transactionRepository.save(transaction);
 
+            eventPublisher.publish(
+                    new TransactionCompletedEvent(
+                            transaction.getId(),
+                            userId,
+                            transaction.getFromAccountNumber(),
+                            null,
+                            transaction.getAmount(),
+                            transaction.getType(),
+                            transaction.getStatus(),
+                            LocalDateTime.now()
+                    )
+            );
+
             return TransactionMapper.toResponse(transaction);
 
         } catch (RuntimeException ex) {
 
             transaction.setStatus(TransactionStatus.FAILED);
             transactionRepository.save(transaction);
+
+            eventPublisher.publish(
+                    new TransactionCompletedEvent(
+                            transaction.getId(),
+                            userId,
+                            transaction.getFromAccountNumber(),
+                            null,
+                            transaction.getAmount(),
+                            transaction.getType(),
+                            transaction.getStatus(),
+                            LocalDateTime.now()
+                    )
+            );
 
             throw ex;
         }
@@ -220,12 +276,38 @@ public class TransactionServiceImpl implements TransactionService{
             transaction.setStatus(TransactionStatus.SUCCESS);
             transactionRepository.save(transaction);
 
+            eventPublisher.publish(
+                    new TransactionCompletedEvent(
+                            transaction.getId(),
+                            userId,
+                            null,
+                            transaction.getToAccountNumber(),
+                            transaction.getAmount(),
+                            transaction.getType(),
+                            transaction.getStatus(),
+                            LocalDateTime.now()
+                    )
+            );
+
             return TransactionMapper.toResponse(transaction);
 
         } catch (RuntimeException ex) {
 
             transaction.setStatus(TransactionStatus.FAILED);
             transactionRepository.save(transaction);
+            
+            eventPublisher.publish(
+                    new TransactionCompletedEvent(
+                            transaction.getId(),
+                            userId,
+                            null,
+                            transaction.getToAccountNumber(),
+                            transaction.getAmount(),
+                            transaction.getType(),
+                            transaction.getStatus(),
+                            LocalDateTime.now()
+                    )
+            );
 
             throw ex;
         }
